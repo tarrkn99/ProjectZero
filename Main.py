@@ -432,6 +432,7 @@ pgzrun.go()
 
 # TO DO!
 
+# add wires(green wires 1 way, blue wires 2 way)
 # change images
 # make the bin move with ur mouse on click
 # add asteroids you can shoot
