@@ -341,7 +341,7 @@ def check_chips():
     for i in range(len(placed_objects)):
         if placed_objects[i].image == "circutGreen":
             pass
-
+#hehe
 def on_mouse_down(button, pos):
     global mod, build_menu, move_inventory_list, energy, max_energy, research_faster
 
