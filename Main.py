@@ -35,22 +35,20 @@ fire_Wall_choice = Actor("radar", pos = (345, 206))
 faster_green_choice = Actor("radar", pos = (325, 306))
 build_structure = Actor("radar", pos = (-100000, 1000000))
 
+
 research_list = [Actor("batterygreencompleted", pos = (200, 156)), 
                  Actor("energyboxgreencompleted", pos = (200, 206)), 
                  Actor("solarpanelcompleted", pos = (200, 256)), 
                  Actor("wiresresearchcompleted", pos = (200, 306)), 
                  Actor("circutgreencompleted", pos = (200, 356))]
 
-# move_inventory_list = [Actor("radar", pos = (120,440)), 
-#                     Actor("radar", pos = (160, 440)), 
-#                     Actor("radar", pos = (200, 440)), 
-#                     Actor("radar", pos = (240, 440)), 
-#                     Actor("radar", pos = (280, 440))]
-
 inventory_x = 120
 inventory_y = 440
 move_inventory_list = []
 placed_objects = []
+all_wires = []
+wires_point_1 = -1
+wires_point_2 = -1
 
 research_cell = ["researchdownload1", "researchdownload2", "researchdownload1", "researchdownload2"]
 
@@ -77,6 +75,8 @@ radar = 0
 research_cell_gone = True
 build_menu = False
 generator_blue = False
+draw_wire_line = False
+wires_2_cords = -1
 
 def research_window():
     screen.draw.filled_rect(Rect((170, 156), (5, 200)), (0,0,0))
@@ -169,7 +169,7 @@ def draw_heat():
     for i in range(int(heat_temp) // cost):
         cell = Actor("cell", pos = (115 + 31 + 11 * i, 240))
         cell.draw()
-    
+
 def draw_radar():
     global radar, radar_unlocked, radar_icon
 
@@ -214,7 +214,12 @@ def draw():
             rock_texture_grid.draw()
             build_structure.draw()
         show_text_tile()
-
+        for i in range(len(all_wires)):
+            all_wires[i].draw()
+        if draw_wire_line == True:
+            screen.draw.line(wires_point_1, wires_2_cords, (225,0,0))
+            screen.draw.line((wires_point_1[0]-1,wires_point_1[1]-1), (wires_2_cords[0]-1, wires_2_cords[1]-1), (225,0,0))
+            screen.draw.line((wires_point_1[0]-1,wires_point_1[1]+1), (wires_2_cords[0]+1, wires_2_cords[1]+1), (225,0,0))
     elif mod == "menu":
         menu.draw()
         start.draw()
@@ -343,7 +348,7 @@ def check_chips():
             pass
 #hehe
 def on_mouse_down(button, pos):
-    global mod, build_menu, move_inventory_list, energy, max_energy, research_faster
+    global mod, build_menu, move_inventory_list, energy, max_energy, research_faster, wires_point_1, wires_point_2, draw_wire_line, wires_2_cords
 
     if mod == "screen" and back_arrow.collidepoint(pos):
         mod = "game"
@@ -367,15 +372,30 @@ def on_mouse_down(button, pos):
         mod = "research"
 
     elif mod == "game":
-        for i in range(len(move_inventory_list)):
-            if move_inventory_list[i].collidepoint(pos):
-                build_menu = True
-                rock_texture_grid.image = "rocktexturebuildred"
-                build_structure.image = move_inventory_list[i].image
-                build_structure.energy = move_inventory_list[i].energy
         if mod == "game" and build_menu == True:
             if build_structure.energy <= energy:
-                if rock_texture_grid.image == "rocktexturebuild":
+                if build_structure.image == "wires":
+
+                    if wires_point_1 == -1:
+                        wires_point_1 = rock_texture_grid.pos
+
+                    elif wires_point_2 == -1:
+                        wires_point_2 = rock_texture_grid.pos
+                        draw_wire_line = False
+                        if wires_point_1[0] > wires_point_2[0]:
+                            all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1])))
+                        elif wires_point_1[0] < wires_point_2[0]:
+                            all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]+16, wires_point_1[1])))
+
+                        elif wires_point_1[1] > wires_point_2[1]:
+                            all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]-16)))
+                        elif wires_point_1[1] < wires_point_2[1]:
+                            all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]+16)))
+
+                        wires_point_1 = -1
+                        wires_point_2 = -1
+
+                elif rock_texture_grid.image == "rocktexturebuild":
                     placed_objects.append(Actor(build_structure.image,rock_texture_grid.pos))
                     build_menu = False
                     energy -= build_structure.energy
@@ -401,10 +421,28 @@ def on_mouse_down(button, pos):
                 build_menu = False
         if bin.collidepoint(pos):
             build_menu = False
+            draw_wire_line = False ###
+
+        for i in range(len(move_inventory_list)):
+            if move_inventory_list[i].collidepoint(pos):
+                build_menu = True
+                wires_point_1 = -1
+                wires_point_2 = -1
+                rock_texture_grid.image = "rocktexturebuildred"
+                build_structure.image = move_inventory_list[i].image
+                build_structure.energy = move_inventory_list[i].energy
+        
 
 def on_mouse_move(pos):
-    global build_menu, box_size
+    global build_menu, box_size, wires_point_1, wires_point_2, draw_wire_line, wires_2_cords
 
+    if wires_point_1 != -1 and wires_point_2 == -1 and build_menu == True:
+        #screen.draw.filled_rect(Rect(wires_point_1, pos), (0,0,0))
+        draw_wire_line = True
+        wires_2_cords = pos
+    else:
+        draw_wire_line = False
+        wires_2_cords = -1
     if build_menu == True:
         build_structure.pos = pos
         rock_texture_grid.top = box_size * (pos[1] // box_size)
