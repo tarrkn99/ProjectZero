@@ -217,9 +217,44 @@ def draw():
         for i in range(len(all_wires)):
             all_wires[i].draw()
         if draw_wire_line == True:
-            screen.draw.line(wires_point_1, wires_2_cords, (225,0,0))
-            screen.draw.line((wires_point_1[0]-1,wires_point_1[1]-1), (wires_2_cords[0]-1, wires_2_cords[1]-1), (225,0,0))
-            screen.draw.line((wires_point_1[0]-1,wires_point_1[1]+1), (wires_2_cords[0]+1, wires_2_cords[1]+1), (225,0,0))
+            dx = wires_2_cords[0] - wires_point_1[0]
+            dy = wires_2_cords[1] - wires_point_1[1]
+            x2 = -1
+            y2 = -1
+            if dx > 0:
+                if dy > 0:
+                    if abs(dx) >= abs(dy):
+                        x2 = wires_point_1[0] + 32
+                        y2 = wires_point_1[1]
+                    else:
+                        x2 = wires_point_1[0]
+                        y2 = wires_point_1[1] + 32
+                else:
+                    if abs(dx) >= abs(dy):
+                        x2 = wires_point_1[0] + 32
+                        y2 = wires_point_1[1]
+                    else:
+                        x2 = wires_point_1[0]
+                        y2 = wires_point_1[1] - 32    
+            else:
+                if dy > 0:
+                    if abs(dx) >= abs(dy):
+                        x2 = wires_point_1[0] - 32
+                        y2 = wires_point_1[1]
+                    else:
+                        x2 = wires_point_1[0]
+                        y2 = wires_point_1[1] + 32
+                else:
+                    if abs(dx) >= abs(dy):
+                        x2 = wires_point_1[0] - 32
+                        y2 = wires_point_1[1]
+                    else:
+                        x2 = wires_point_1[0]
+                        y2 = wires_point_1[1] - 32 
+                        
+            screen.draw.line(wires_point_1, (x2,y2), (225,0,0))
+            screen.draw.line((wires_point_1[0]-1,wires_point_1[1]-1), (x2-1, y2-1), (225,0,0))
+            screen.draw.line((wires_point_1[0]-1,wires_point_1[1]+1), (x2, y2+1), (225,0,0))
     elif mod == "menu":
         menu.draw()
         start.draw()
@@ -382,15 +417,46 @@ def on_mouse_down(button, pos):
                     elif wires_point_2 == -1:
                         wires_point_2 = rock_texture_grid.pos
                         draw_wire_line = False
-                        if wires_point_1[0] > wires_point_2[0]:
-                            all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1])))
-                        elif wires_point_1[0] < wires_point_2[0]:
-                            all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]+16, wires_point_1[1])))
 
-                        elif wires_point_1[1] > wires_point_2[1]:
-                            all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]-16)))
-                        elif wires_point_1[1] < wires_point_2[1]:
-                            all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]+16)))
+                        dx = pos[0] - wires_point_1[0]
+                        dy = pos[1] - wires_point_1[1]
+                        if dx > 0:
+                            if dy > 0:
+                                if abs(dx) >= abs(dy):
+                                    all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]+16, wires_point_1[1])))
+                                else:
+                                    all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]+16)))
+                            else:
+                                if abs(dx) >= abs(dy):
+                                    all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]+16, wires_point_1[1])))
+                                else:
+                                    all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]-16)))
+                        else:
+                            if dy > 0:
+                                if abs(dx) >= abs(dy):
+                                    all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1])))
+                                else:
+                                    all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]+16)))
+                            else:
+                                if abs(dx) >= abs(dy):
+                                    all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1])))
+                                else:
+                                    all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]-16)))
+
+
+
+
+
+
+                        # if wires_point_1[0] > wires_point_2[0]:
+                        #     all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1])))
+                        # elif wires_point_1[0] < wires_point_2[0]:
+                        #     all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]+16, wires_point_1[1])))
+
+                        # elif wires_point_1[1] > wires_point_2[1]:
+                        #     all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]-16)))
+                        # elif wires_point_1[1] < wires_point_2[1]:
+                        #     all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]+16)))
 
                         wires_point_1 = -1
                         wires_point_2 = -1
@@ -421,7 +487,7 @@ def on_mouse_down(button, pos):
                 build_menu = False
         if bin.collidepoint(pos):
             build_menu = False
-            draw_wire_line = False ###
+            draw_wire_line = False
 
         for i in range(len(move_inventory_list)):
             if move_inventory_list[i].collidepoint(pos):
@@ -431,7 +497,7 @@ def on_mouse_down(button, pos):
                 rock_texture_grid.image = "rocktexturebuildred"
                 build_structure.image = move_inventory_list[i].image
                 build_structure.energy = move_inventory_list[i].energy
-        
+
 
 def on_mouse_move(pos):
     global build_menu, box_size, wires_point_1, wires_point_2, draw_wire_line, wires_2_cords
