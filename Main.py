@@ -540,6 +540,6 @@ pgzrun.go()
 # change images
 # make the bin move with ur mouse on click
 # add asteroids you can shoot
-# 
-#
+# WRENCH - instead of wires there is 2 wrench 1 deletes wires other creates wires
+# no green cirst add circut only at blue level
 #
