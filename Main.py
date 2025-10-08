@@ -1,6 +1,7 @@
 import pgzrun
 import random
 
+game_time = 0
 box_size = 32
 border_height = 16
 border_width = 16
@@ -26,14 +27,16 @@ back_arrow = Actor("back", pos = (390, 170))
 generator_green_research = Actor("generatorgreen", pos = (50, 256))
 generator_blue_research = Actor("generatorblue", pos = (450, 256))
 solar_panel_research = Actor("solarpanel", pos = (200, 256))
-wire_research = Actor("wires", pos = (200, 306))
+wrench_research = Actor("wrench", pos = (200, 306))
 circut_green_research = Actor("circutgreen", pos = (200, 356))
 energy_box_green_research = Actor("energyboxgreen", pos = (200, 206))
 battery_green_research = Actor("batterygreen", pos = (200, 156))
 radar_choice = Actor("radar", pos = (300, 206))
 fire_Wall_choice = Actor("radar", pos = (345, 206))
 faster_green_choice = Actor("radar", pos = (325, 306))
-build_structure = Actor("radar", pos = (-100000, 1000000))
+build_structure = Actor("radar", pos = (-100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, 1000000))
+
+asteroids = []
 
 
 research_list = [Actor("batterygreencompleted", pos = (200, 156)), 
@@ -42,6 +45,8 @@ research_list = [Actor("batterygreencompleted", pos = (200, 156)),
                  Actor("wiresresearchcompleted", pos = (200, 306)), 
                  Actor("circutgreencompleted", pos = (200, 356))]
 
+
+asteroid_crash_time = -1
 inventory_x = 120
 inventory_y = 440
 move_inventory_list = []
@@ -66,17 +71,19 @@ virus = random.randint(30, 120)
 max_heat = 1000
 heat = 100
 max_energy = 500
-energy = 500
+energy = 50
 min_energy = 0
 research_faster = 0
 radar_unlocked = True
 max_radar = 20
 radar = 0
+wires_2_cords = -1
 research_cell_gone = True
 build_menu = False
 generator_blue = False
 draw_wire_line = False
-wires_2_cords = -1
+allow_wires_build = False
+
 
 def research_window():
     screen.draw.filled_rect(Rect((170, 156), (5, 200)), (0,0,0))
@@ -96,7 +103,7 @@ def research_window():
     generator_green_research.draw()
     generator_blue_research.draw()
     solar_panel_research.draw()
-    wire_research.draw()
+    wrench_research.draw()
     circut_green_research.draw()
     energy_box_green_research.draw()
     battery_green_research.draw()
@@ -113,13 +120,29 @@ research_time = [4, 4, 4, 4, 4, 4, 4, 4]
 
 build_energy_amount = [50, 50, 10, 10, 10, 100]
 
-research_names = ["batterygreen", "energyboxgreen", "solarpanel", "wires", "circutgreen", "radar", "firewall", "greenfast"]
-research_objects = [battery_green_research, energy_box_green_research, solar_panel_research, wire_research, circut_green_research, radar_choice, fire_Wall_choice, faster_green_choice]
+research_names = ["batterygreen", "energyboxgreen", "solarpanel", "wrench", "circutgreen", "radar", "firewall", "greenfast"]
+research_objects = [battery_green_research, energy_box_green_research, solar_panel_research, wrench_research, circut_green_research, radar_choice, fire_Wall_choice, faster_green_choice]
 research_true = [False, False, False, False, False, False, False, False]
 research_level = "green"
 research_status = False
 research_number = -1
 research_timer_amount = 0
+
+def game_time_manager():
+    global game_time, asteroid_crash_time
+
+    if game_time == asteroid_crash_time:
+        asteroid = Actor("asteroid")
+        asteroid.landing_spot = (random.randint(1, 15)*32, random.randint(1, 12)*32)
+        asteroid.left = asteroid.landing_spot[0] -500
+        asteroid.top = asteroid.landing_spot[1] -500
+        animate(asteroid, "linear", 1, x = asteroid.landing_spot[0], y = asteroid.landing_spot[1])
+        asteroids.append(asteroid)
+        asteroid_crash_time = game_time + random.randint(1, 2)
+    game_time += 1
+
+clock.schedule_interval(game_time_manager, 1)
+asteroid_crash_time = random.randint(1, 2)
 
 
 def create_map():
@@ -216,45 +239,52 @@ def draw():
         show_text_tile()
         for i in range(len(all_wires)):
             all_wires[i].draw()
+                
         if draw_wire_line == True:
-            dx = wires_2_cords[0] - wires_point_1[0]
-            dy = wires_2_cords[1] - wires_point_1[1]
-            x2 = -1
-            y2 = -1
-            if dx > 0:
-                if dy > 0:
-                    if abs(dx) >= abs(dy):
-                        x2 = wires_point_1[0] + 32
-                        y2 = wires_point_1[1]
+            try:
+                dx = wires_2_cords[0] - wires_point_1[0]
+                dy = wires_2_cords[1] - wires_point_1[1]
+                x2 = -1
+                y2 = -1
+                if dx > 0:
+                    if dy > 0:
+                        if abs(dx) >= abs(dy):
+                            x2 = wires_point_1[0] + 32
+                            y2 = wires_point_1[1]
+                        else:
+                            x2 = wires_point_1[0]
+                            y2 = wires_point_1[1] + 32
                     else:
-                        x2 = wires_point_1[0]
-                        y2 = wires_point_1[1] + 32
+                        if abs(dx) >= abs(dy):
+                            x2 = wires_point_1[0] + 32
+                            y2 = wires_point_1[1]
+                        else:
+                            x2 = wires_point_1[0]
+                            y2 = wires_point_1[1] - 32    
                 else:
-                    if abs(dx) >= abs(dy):
-                        x2 = wires_point_1[0] + 32
-                        y2 = wires_point_1[1]
+                    if dy > 0:
+                        if abs(dx) >= abs(dy):
+                            x2 = wires_point_1[0] - 32
+                            y2 = wires_point_1[1]
+                        else:
+                            x2 = wires_point_1[0]
+                            y2 = wires_point_1[1] + 32
                     else:
-                        x2 = wires_point_1[0]
-                        y2 = wires_point_1[1] - 32    
-            else:
-                if dy > 0:
-                    if abs(dx) >= abs(dy):
-                        x2 = wires_point_1[0] - 32
-                        y2 = wires_point_1[1]
-                    else:
-                        x2 = wires_point_1[0]
-                        y2 = wires_point_1[1] + 32
-                else:
-                    if abs(dx) >= abs(dy):
-                        x2 = wires_point_1[0] - 32
-                        y2 = wires_point_1[1]
-                    else:
-                        x2 = wires_point_1[0]
-                        y2 = wires_point_1[1] - 32 
-                        
-            screen.draw.line(wires_point_1, (x2,y2), (225,0,0))
-            screen.draw.line((wires_point_1[0]-1,wires_point_1[1]-1), (x2-1, y2-1), (225,0,0))
-            screen.draw.line((wires_point_1[0]-1,wires_point_1[1]+1), (x2, y2+1), (225,0,0))
+                        if abs(dx) >= abs(dy):
+                            x2 = wires_point_1[0] - 32
+                            y2 = wires_point_1[1]
+                        else:
+                            x2 = wires_point_1[0]
+                            y2 = wires_point_1[1] - 32 
+                            
+                screen.draw.line(wires_point_1, (x2,y2), (225,0,0))
+                screen.draw.line((wires_point_1[0]-1,wires_point_1[1]-1), (x2-1, y2-1), (225,0,0))
+                screen.draw.line((wires_point_1[0]-1,wires_point_1[1]+1), (x2, y2+1), (225,0,0))
+            except:
+                print("hihi")
+        for i in range(len(asteroids)):
+            asteroids[i].draw()
+
     elif mod == "menu":
         menu.draw()
         start.draw()
@@ -289,6 +319,12 @@ def research_prosses():
             research_object.energy = build_energy_amount[research_number]
             move_inventory_list.append(research_object)
             inventory_x += 40
+            if research_object.image == "wrench":
+                new_object = Actor("wrenchdelete", (inventory_x,inventory_y))
+                new_object.energy = 0
+                move_inventory_list.append(new_object)
+                inventory_x += 40
+
 
 clock.schedule_interval(research_prosses, 1)
 
@@ -313,7 +349,7 @@ def research_update(button, pos):
         research_number = 2
         research_status = True
     
-    elif wire_research.collidepoint(pos) and research_true[3] == False:
+    elif wrench_research.collidepoint(pos) and research_true[3] == False:
         if research_number != 3:
             research_timer_amount = 0
         research_number = 3
@@ -381,9 +417,9 @@ def check_chips():
     for i in range(len(placed_objects)):
         if placed_objects[i].image == "circutGreen":
             pass
-#hehe
+
 def on_mouse_down(button, pos):
-    global mod, build_menu, move_inventory_list, energy, max_energy, research_faster, wires_point_1, wires_point_2, draw_wire_line, wires_2_cords
+    global mod, build_menu, move_inventory_list, energy, max_energy, research_faster, wires_point_1, wires_point_2, draw_wire_line, wires_2_cords, allow_wires_build
 
     if mod == "screen" and back_arrow.collidepoint(pos):
         mod = "game"
@@ -409,7 +445,7 @@ def on_mouse_down(button, pos):
     elif mod == "game":
         if mod == "game" and build_menu == True:
             if build_structure.energy <= energy:
-                if build_structure.image == "wires":
+                if (build_structure.image == "wrench" or build_structure.image == "wrenchdelete") and allow_wires_build == True:
 
                     if wires_point_1 == -1:
                         wires_point_1 = rock_texture_grid.pos
@@ -422,31 +458,43 @@ def on_mouse_down(button, pos):
                         dy = pos[1] - wires_point_1[1]
                         if dx > 0:
                             if dy > 0:
-                                if abs(dx) >= abs(dy):
-                                    all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]+16, wires_point_1[1])))
-                                else:
-                                    all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]+16)))
+                                if abs(dx) >= abs(dy) and check_wires((wires_point_1[0]+32, wires_point_1[1])):
+                                    new_line = Actor('wiresgreenhor',(wires_point_1[0]+16, wires_point_1[1])) 
+                                elif check_wires((wires_point_1[0], wires_point_1[1]+32)):
+                                    new_line = Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]+16))
                             else:
-                                if abs(dx) >= abs(dy):
-                                    all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]+16, wires_point_1[1])))
-                                else:
-                                    all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]-16)))
+                                if abs(dx) >= abs(dy) and check_wires((wires_point_1[0]+32, wires_point_1[1])):
+                                   new_line = Actor('wiresgreenhor',(wires_point_1[0]+16, wires_point_1[1]))
+                                elif check_wires((wires_point_1[0], wires_point_1[1]-32)):
+                                    new_line = Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]-16))
                         else:
                             if dy > 0:
-                                if abs(dx) >= abs(dy):
-                                    all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1])))
-                                else:
-                                    all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]+16)))
+                                if abs(dx) >= abs(dy) and check_wires((wires_point_1[0]-32, wires_point_1[1])):
+                                    new_line = Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1]))
+                                elif check_wires((wires_point_1[0], wires_point_1[1]+32)):
+                                    new_line = Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]+16))
                             else:
-                                if abs(dx) >= abs(dy):
-                                    all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1])))
-                                else:
-                                    all_wires.append(Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]-16)))
-
-
-
-
-
+                                if abs(dx) >= abs(dy) and check_wires((wires_point_1[0]-32, wires_point_1[1])):
+                                    new_line = Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1]))
+                                elif check_wires((wires_point_1[0], wires_point_1[1]-32)):
+                                    new_line = Actor('wiresgreenver',(wires_point_1[0], wires_point_1[1]-16))
+                        try:
+                            if build_structure.image == "wrench":
+                                temp = True
+                                for i in range(len(all_wires)):
+                                    if new_line.pos == all_wires[i].pos:
+                                        temp = False
+                                        break
+                                if temp == True and build_structure.energy <= energy:
+                                    all_wires.append(new_line)
+                                    energy -= build_structure.energy
+                            else:
+                                for i in range(len(all_wires)):
+                                    if new_line.pos == all_wires[i].pos:
+                                        all_wires.pop(i)
+                                        break
+                        except:
+                            pass
 
                         # if wires_point_1[0] > wires_point_2[0]:
                         #     all_wires.append(Actor('wiresgreenhor',(wires_point_1[0]-16, wires_point_1[1])))
@@ -498,17 +546,18 @@ def on_mouse_down(button, pos):
                 build_structure.image = move_inventory_list[i].image
                 build_structure.energy = move_inventory_list[i].energy
 
-
 def on_mouse_move(pos):
-    global build_menu, box_size, wires_point_1, wires_point_2, draw_wire_line, wires_2_cords
+    global build_menu, box_size, wires_point_1, wires_point_2, draw_wire_line, wires_2_cords, allow_wires_build
 
-    if wires_point_1 != -1 and wires_point_2 == -1 and build_menu == True:
+    allow_wires_build = True
+    if wires_point_1 != -1 and wires_point_2 == -1 and build_menu == True and allow_wires_build == True:
         #screen.draw.filled_rect(Rect(wires_point_1, pos), (0,0,0))
         draw_wire_line = True
         wires_2_cords = pos
     else:
         draw_wire_line = False
         wires_2_cords = -1
+
     if build_menu == True:
         build_structure.pos = pos
         rock_texture_grid.top = box_size * (pos[1] // box_size)
@@ -522,11 +571,22 @@ def on_mouse_move(pos):
             build_menu = True
         if rock_texture_grid.y > HEIGHT - 3 * box_size:
             rock_texture_grid.image = rock_texture_grid_red.image
+            allow_wires_build = False
         if generator_green.collidepoint(pos):
             rock_texture_grid.image = "rocktexturebuildred"
+            allow_wires_build = False
         if bin.collidepoint(pos):
             rock_texture_grid.image = "rocktexturebuildred"
+            allow_wires_build = False
 
+def check_wires(point):
+    if point[1] > HEIGHT - 3 * box_size:
+        return False
+    if generator_green.collidepoint(point):
+        return False
+    if bin.collidepoint(point):
+        return False
+    return True
 
 
 
@@ -536,10 +596,9 @@ pgzrun.go()
 
 # TO DO!
 
-# add wires(green wires 1 way, blue wires 2 way)
+# add asteroids/virus
 # change images
 # make the bin move with ur mouse on click
-# add asteroids you can shoot
 # WRENCH - instead of wires there is 2 wrench 1 deletes wires other creates wires
 # no green cirst add circut only at blue level
 #
